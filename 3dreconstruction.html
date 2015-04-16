@@ -85,8 +85,8 @@ f_x &amp;    0 &amp; c_x \\
   0 &amp;    0 &amp;   1
 \end{array}\right]
 \]</span></p>
-<p><span class="math">\(-f_y\)</span> diminuskan karena di gambar 2D, pojok atas adalah <span class="math">\(v=0\)</span> dan bawah adalah misalnya <span class="math">\(v=240\)</span> (untuk dimensi 320×240); padahal di 3D bawah adalah <span class="math">\(y&lt;0\)</span> dan atas adalah <span class="math">\(y&gt;0\)</span>.</p>
-<p>Untuk mendapatkan <span class="math">\(f_x\)</span> dan <span class="math">\(f_y\)</span>, kita menentukan dulu focal length dan ukuran “sensor”. Anggap focal length (<span class="math">\(F\)</span>) 35mm. Dan sensor 36mm x 24mm (Full-frame). Trus resolusi gambar 320×240.</p>
+<p><span class="math">\(-f_y\)</span> diminuskan karena di gambar 2D, pojok atas adalah <span class="math">\(v=0\)</span> dan bawah adalah misalnya <span class="math">\(v=240\)</span> (untuk dimensi 320Ã240); padahal di 3D bawah adalah <span class="math">\(y&lt;0\)</span> dan atas adalah <span class="math">\(y&gt;0\)</span>.</p>
+<p>Untuk mendapatkan <span class="math">\(f_x\)</span> dan <span class="math">\(f_y\)</span>, kita menentukan dulu focal length dan ukuran “sensor”. Anggap focal length (<span class="math">\(F\)</span>) 35mm. Dan sensor 36mm x 24mm (Full-frame). Trus resolusi gambar 320Ã240.</p>
 <ul>
 <li><span class="math">\(s_x\)</span> = image width(px) / sensor width(mm) = 320px / 36mm = 8.9px/mm</li>
 <li><span class="math">\(s_y\)</span> = image height(px) / sensor height(mm) = 240px / 24mm = 10px/mm</li>
@@ -143,7 +143,7 @@ pander(CM, caption=&#39;camera matrix&#39;)</code></pre>
 <li>Aperture size F2.2</li>
 <li>Focal length (35mm equivalent): 31 mm –&gt; harus dikonversi ke focal length fisik = 4.3mm (<a href="http://www.digified.net/focallength/" class="uri">http://www.digified.net/focallength/</a>)</li>
 <li>Camera sensor size: 1/3.06&quot; (diagonal: 0.3268&quot; = 8.3mm, dimensi: 6.64mm x 4.98mm)</li>
-<li>Pixel size: 1.14 μm</li>
+<li>Pixel size: 1.14 Î¼m</li>
 </ul>
 <pre class="r"><code># Samsung Galaxy S4
 focalLength &lt;- 4.3 #mm
@@ -1888,7 +1888,7 @@ pander(person.height)</code></pre>
 <li><code>qr</code>: QR Decomposition of Matrix.</li>
 <li><code>solve</code>: Solve a System of Equations</li>
 </ol>
-<p>Ternyata sudah ada, yaitu <a href="http://docs.opencv.org/modules/core/doc/operations_on_arrays.html?highlight=solve#bool%20solve(InputArray%20src1,%20InputArray%20src2,%20OutputArray%20dst,%20int%20flags)">bool solve(InputArray src1, InputArray src2, OutputArray dst, int flags=DECOMP_LU)¶</a></p>
+<p>Ternyata sudah ada, yaitu <a href="http://docs.opencv.org/modules/core/doc/operations_on_arrays.html?highlight=solve#bool%20solve(InputArray%20src1,%20InputArray%20src2,%20OutputArray%20dst,%20int%20flags)">bool solve(InputArray src1, InputArray src2, OutputArray dst, int flags=DECOMP_LU)Â¶</a></p>
 <p>jadi kalo di R:</p>
 <pre class="r"><code>xyz &lt;- solve(qr(CMRt), uv)</code></pre>
 <p>di C++ jadi:</p>
@@ -1896,7 +1896,19 @@ pander(person.height)</code></pre>
 </div>
 <div id="pembuktian-model-dari-realita-samsung-galaxy-s4" class="section level2">
 <h2>Pembuktian Model dari Realita Samsung Galaxy S4</h2>
-<p>Di kantor Bippo:</p>
+<div id="di-mic-lantai-4" class="section level3">
+<h3>Di MIC lantai 4</h3>
+<ul>
+<li>approximate location : -6.890627,107.610220</li>
+<li>ubin : 0.4m x 0.4m</li>
+<li>ukuran ruangan: lebar (east-west) max : 11 ubin + 0.24m = 4.4m + 0.24m = 4.64m lebar (east-west) min : 0.1m + 10 ubin + 0.24m = 0.1m + 4m + 0.24m = 4.34m panjang (north-south) ruangan : 29 ubin + 0.28m = 11.6m + 0.28m = 11.88m tinggi ~3m</li>
+<li>pier: deket pintu=0.52m, scale.z=0.62m, di dalam=0.235m. jarak dari selatan ke tepi pier: 0.28m + 13ubin + 0.13m = 5.61m jarak dari selatan ke center pier: 0.28m + 13ubin + 0.13m + 0.31m = 5.92m</li>
+<li>ketebalan tembok jendela = 0.2m ketebalan tembok ke interior = 0.16m</li>
+<li>meja: panjang 1m, tinggi 0.755m, lebar 0.6m</li>
+</ul>
+</div>
+<div id="di-kantor-bippo" class="section level3">
+<h3>Di kantor Bippo</h3>
 <ul>
 <li>ukuran ruangan: dz = (11.66667 + 6.9) * 0.3 = 5.57 m, dengan range: -2…+3.57 dx = 12 * 0.3 = 3.6 m, dengan range: -1.4 .. +2.2</li>
 <li>Jarak kamera ke tembok (z) = 11.6667 ubin = 11.6667 * 0.3 = 3.5 m</li>
@@ -1916,6 +1928,7 @@ pander(person.height)</code></pre>
 <li>5 petak dari kamera (0, 0, 1.5)</li>
 </ol></li>
 </ul>
+</div>
 </div>
 <div id="rotasi-3d" class="section level2">
 <h2>Rotasi 3D</h2>
@@ -1943,7 +1956,7 @@ R_cz(\gamma) = \begin{bmatrix}
 \end{bmatrix}
 \]</span></p>
 <p>Untuk menggabungkan <span class="math">\(R_cx\)</span>, <span class="math">\(R_cy\)</span>, dan <span class="math">\(R_cz\)</span> kayaknya urutannya begini:</p>
-<p><span class="math">\[R_c = R_{cz(γ)} R_{cy(β)} R_{cx(α)}
+<p><span class="math">\[R_c = R_{cz(Î³)} R_{cy(Î²)} R_{cx(Î±)}
 \]</span></p>
 <p>Perhatikan bahwa tugas <span class="math">\([R|t]\)</span> adalah mentranslasi lalu merotasi titik 3D agar berada dalam koordinat kamera. Setelah didapatkan <span class="math">\(R_c\)</span> yaitu rotasi kamera dan <span class="math">\(t_c\)</span> yaitu translasi kamera, kita bisa mencari <span class="math">\([R|t]\)</span>. Untuk mendapatkan <span class="math">\([R|\mathbf{t}]\)</span> dari posisi kamera <span class="math">\(t_c\)</span> dan rotasi kamera <span class="math">\(R_c\)</span>, <a href="http://ksimek.github.io/2012/08/22/extrinsic/">maka</a>: (<span class="math">\(^T\)</span>: transpose)</p>
 <p><span class="math">\[\left[

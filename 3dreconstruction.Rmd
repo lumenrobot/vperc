@@ -448,7 +448,23 @@ bool success = solve(CMRt, uv, xyz, DECOMP_QR);
 
 ## Pembuktian Model dari Realita Samsung Galaxy S4
 
-Di kantor Bippo:
+### Di MIC lantai 4
+
+* approximate location : -6.890627,107.610220
+* ubin : 0.4m x 0.4m
+* ukuran ruangan:
+  lebar (east-west) max : 11 ubin + 0.24m = 4.4m + 0.24m = 4.64m
+  lebar (east-west) min : 0.1m + 10 ubin + 0.24m = 0.1m + 4m + 0.24m = 4.34m
+  panjang (north-south) ruangan : 29 ubin + 0.28m = 11.6m + 0.28m = 11.88m
+  tinggi ~3m
+* pier: deket pintu=0.52m, scale.z=0.62m, di dalam=0.235m.
+  jarak dari selatan ke tepi pier: 0.28m + 13ubin + 0.13m = 5.61m
+  jarak dari selatan ke center pier: 0.28m + 13ubin + 0.13m + 0.31m = 5.92m
+* ketebalan tembok jendela = 0.2m
+  ketebalan tembok ke interior = 0.16m
+* meja: panjang 1m, tinggi 0.755m, lebar 0.6m
+
+### Di kantor Bippo
 
 * ukuran ruangan:
   dz = (11.66667 + 6.9) * 0.3 = 5.57 m, dengan range: -2...+3.57
