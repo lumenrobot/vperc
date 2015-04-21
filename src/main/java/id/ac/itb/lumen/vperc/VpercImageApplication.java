@@ -44,45 +44,55 @@ public class VpercImageApplication implements CommandLineRunner {
 //    @Autowired
 //    private SentimentAnalyzer sentimentAnalyzer;
 
+    public static String toString(Mat mat) {
+        String s = "";
+        for (int y=0; y< mat.rows(); y++)
+        {
+            for (int x=0; x < mat.cols(); x++) {
+                s += String.format(" %3.2f", mat.get(y, x)[0]);
+            }
+            s += "\n";
+        }
+        return s;
+    }
+
     @Override
     public void run(String... args) throws Exception {
-        Preconditions.checkArgument(args.length >= 1, "Please input image file name");
-        final File imageFile = new File(args[0]);
-        log.info("Processing image file '{}' ...", imageFile);
-        final Mat imgMat = Highgui.imread(imageFile.getPath());
-        log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
+//        Preconditions.checkArgument(args.length >= 1, "Please input image file name");
+//        final File imageFile = new File(args[0]);
+//        log.info("Processing image file '{}' ...", imageFile);
+//        final Mat imgMat = Highgui.imread(imageFile.getPath());
+//        log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
 
 
         //CM
         Mat CM=CameraMatrix();
+        log.info("CM =\n{}", toString(CM));
         //RxT
         Mat RxT=RotationXTranpus(0);
+        log.info("RxT =\n{}", toString(RxT));
         //CmRxt
         Mat CmRxT=GetCmRT(CM, RxT);
+        log.info("CmRxT =\n{}", toString(CmRxT));
 
         //input XYZ objec 3D
         Mat XYZ = Mat.zeros( 4, 1, CvType.CV_32F );
-        XYZ.put(0, 0,0);//X
-        XYZ.put(1, 0,0);//Y
-        XYZ.put(2, 0,1);//Z
+        XYZ.put(0, 0, 0);//X
+        XYZ.put(1, 0, 0);//Y
+        XYZ.put(2, 0, 1);//Z
         XYZ.put(3, 0, 1);
-        for(int i=0;i<4;i++)
-        {
-            log.info("XYZ[{},{}] {}",i,0, XYZ.get(i, 0));
-        }
+        log.info("XYZ =\n", toString(XYZ));
 
         //get SUV
         Mat SUV=GetSUV(CmRxT,XYZ);
+        log.info("SUV =\n{}", toString(SUV));
 
-
-        //Get XYZ dari SUV yg telah diketahui
+        //Get XYZ dari sUV yg telah diketahui (tapi in reality, s belum diketahui)
         Mat inverse = new Mat(4, 3, CvType.CV_32F);
         Core.invert(CmRxT, inverse, Core.DECOMP_SVD);
         Mat XYZ2 = new Mat(4, 1, CvType.CV_32F);
         Core.gemm(inverse, SUV, 1, new Mat(), 0, XYZ2, 0);
-        for(int i=0; i<4;i++) {
-            log.info("XYZ2[{},{}] {}",i,0, XYZ2.get(i, 0));
-        }
+        log.info("XYZ2 =\n{}", toString(XYZ2));
 
         //atau
 //        Mat XYZ3 = new Mat(4, 1, CvType.CV_32F);
@@ -103,13 +113,6 @@ public class VpercImageApplication implements CommandLineRunner {
         cameraMatrix.put(0, 2, imageWidth/2);//cx
         cameraMatrix.put(1, 2, imageHeight/2);//cy
         cameraMatrix.put(2, 2, 1);
-        //log CM
-        for(int i=0; i<3;i++) {
-            for(int j=0;j<3;j++)
-            {
-                log.info("cameraMatrix {}", cameraMatrix.get(i, j));
-            }
-        }
         return cameraMatrix;
     }
 
@@ -126,15 +129,6 @@ public class VpercImageApplication implements CommandLineRunner {
         RxT.put(0, 3,0);//TX
         RxT.put(1, 3,0);//TY
         RxT.put(2, 3,0);//TZ
-
-        //log RxT
-        for(int i=0; i<3;i++) {
-            for(int j=0;j<4;j++)
-            {
-                log.info("RxT[{},{}] {}",i,j, RxT.get(i, j));
-            }
-        }
-
         return RxT;
     }
 
@@ -143,12 +137,6 @@ public class VpercImageApplication implements CommandLineRunner {
     {
         Mat CmRxT = new Mat(3, 4, CvType.CV_32F);
         Core.gemm(cm, rxt, 1, Mat.zeros(1, 1, CvType.CV_32F), 0, CmRxT, 0);
-        for(int i=0; i<3;i++) {
-            for(int j=0;j<4;j++)
-            {
-                log.info("CmRxT[{},{}] {}",i,j, CmRxT.get(i, j));
-            }
-        }
         return CmRxT;
     }
 
@@ -156,10 +144,6 @@ public class VpercImageApplication implements CommandLineRunner {
     {
         Mat SUV = new Mat(3, 1, CvType.CV_32F);
         Core.gemm(cmrt, xyz, 1, Mat.zeros(1, 1, CvType.CV_32F), 0, SUV, 0);
-        for(int i=0; i<3;i++) {
-            log.info("SUV[{},{}] {}",i,0, SUV.get(i, 0));
-        }
-
         return SUV;
     }
 }
