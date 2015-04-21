@@ -49,7 +49,7 @@ public class VpercImageApplication implements CommandLineRunner {
         for (int y=0; y< mat.rows(); y++)
         {
             for (int x=0; x < mat.cols(); x++) {
-                s += String.format(" %3.2f", mat.get(y, x)[0]);
+                s += String.format("%15.10f", mat.get(y, x)[0]);
             }
             s += "\n";
         }
