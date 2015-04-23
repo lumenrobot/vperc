@@ -92,14 +92,6 @@ public class VpercImageApplication implements CommandLineRunner {
         Core.invert(CmRxT, inverse, Core.DECOMP_SVD);
         Mat XYZ2 = new Mat(4, 1, CvType.CV_32F);
         Core.gemm(inverse, SUV, 1, new Mat(), 0, XYZ2, 0);
-        log.info("XYZ2 =\n{}", toString(XYZ2));
-
-        //atau
-//        Mat XYZ3 = new Mat(4, 1, CvType.CV_32F);
-//        Core.solve(CmRxT,SUV, XYZ3, Core.DECOMP_SVD);
-//        for(int i=0; i<4;i++) {
-//            log.info("XYZ3[{},{}] {}",i,0, XYZ3.get(i, 0));
-//        }
     }
 
 
