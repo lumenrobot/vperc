@@ -94,7 +94,7 @@ Kalau udah punya CM maka perlu bikin joint rotation-translation matrix. Ini Hend
 
 ```{r}
 theta <- 0*pi # harusnya ini gamma, lihat penjelasan di bawah tentang rotasi 3D
-tc <- c(0, 1.0, 0)
+tc <- c(0, 1.0, -1.0)
 names(tc) <- c('x', 'y', 'z')
 pander(tc)
 # rotasi ini sebenarnya masih RZ, belum R
@@ -110,21 +110,21 @@ Kalau benar, maka untuk dari 2D ke 3D ya tinggal dibalik.
 
 ```{r}
                 # x    y   -z   1
-XYZ <- matrix(c(  0,   1,0.01,  1, # persis di tengah
-                  0,   1,   1,  1, # persis di tengah, agak ke depan
-                 -1,   1,   1,  1, # depan, agak ke kiri
-                  3,   1,   1,  1, # depan, lebih ke kanan
-                  0,   2,   1,  1, # depan, atas
-                  0,  -2,   1,  1, # depan, lebih ke bawah
-                 -1,  -2,   1,  1, # depan, kiri atas
-                  2,   5,   1,  1, # depan, kanan atas
-                  0,   1,   5,  1, # persis di tengah, depan banget
-                 -1,   1,   5,  1, # depan banget, agak ke kiri
-                  3,   1,   5,  1, # depan banget, lebih ke kanan
-                  0,   2,   5,  1, # depan banget, atas
-                  0,  -2,   5,  1, # depan banget, lebih ke bawah
-                 -1,  -2,   5,  1, # depan banget, kiri atas
-                  2,   5,   5,  1),# depan banget, kanan atas
+XYZ <- matrix(c(  0,   1,1.01,  1, # persis di tengah
+                  0,   1,   2,  1, # persis di tengah, agak ke depan
+                 -1,   1,   2,  1, # depan, agak ke kiri
+                  3,   1,   2,  1, # depan, lebih ke kanan
+                  0,   2,   2,  1, # depan, atas
+                  0,   0,   2,  1, # depan, lebih ke bawah
+                 -1,   0,   2,  1, # depan, kiri bawah
+                  2,   5,   2,  1, # depan, kanan atas
+                  0,   1,   6,  1, # persis di tengah, depan banget
+                 -1,   1,   6,  1, # depan banget, agak ke kiri
+                  3,   1,   6,  1, # depan banget, lebih ke kanan
+                  0,   2,   6,  1, # depan banget, atas
+                  0,   0,   6,  1, # depan banget, lebih ke bawah
+                 -1,   0,   6,  1, # depan banget, kiri bawah
+                  2,   5,   6,  1),# depan banget, kanan atas
               ncol=4, byrow=TRUE)
 colnames(XYZ) <- c('x', 'y', '-z', '1')
 pander(XYZ)
@@ -133,7 +133,7 @@ pander(XYZ)
 Tinggal dikalikan dech:
 
 ```{r}
-sUV <- t(CM %*% Rt %*% XYZ[4,]) # point ke-4
+sUV <- t(CM %*% Rt %*% XYZ[14,]) # point ke-14
 names(sUV) <- c('u', 'v', 's')
 pander(sUV)
 if (sUV['s'] != 0) UV <- sUV / sUV['s'] else UV <- sUV
@@ -364,12 +364,16 @@ First, we multiply the CM with Rt:
 
 ```{r}
 theta <- 0*pi
-t <- c(0, 1.0, 0)
-names(t) <- c('x', 'y', 'z')
-pander(t)
-Rt <- matrix(c(cos(theta), -sin(theta), 0, t['x'],
-               sin(theta),  cos(theta), 0, t['y'],
-               0,           0,          1, t['z']),
+tc <- c(0, 1.0, -1.0)
+names(tc) <- c('x', 'y', 'z')
+pander(tc)
+#Rt <- matrix(c(cos(theta), -sin(theta), 0, -tc['x'],
+#               sin(theta),  cos(theta), 0, -tc['y'],
+#               0,           0,          1,  tc['z']), # right-handed
+#             ncol=4, byrow=TRUE)
+Rt <- matrix(c(cos(theta), -sin(theta), 0, 0,
+               sin(theta),  cos(theta), 0, 0,
+               0,           0,          1, 0), # right-handed
              ncol=4, byrow=TRUE)
 colnames(Rt) <- c('r1', 'r2', 'r3', 't')
 pander(Rt)
@@ -381,24 +385,39 @@ pander(CMRt)
 Bila diketahui: u, v, dan y dari object, maka:
 
 ```{r}
-# xyz yang diinginkan: c(0.8, -1.0, 6.0)
+# case baru: xyz yang diinginkan: point ke-14: c(-1, 0, -6.0) 
+# uv(s) adalah: c(118.6, 161.4) -> kalau di imagespace, cuma c(119, 161, dummy=1) dan agak nggak akurat
+# y adalah: -1
+#
+# case lama: xyz yang diinginkan: c(0.8, -1.0, 6.0)
 # uv(s) adalah: c(187.6305 154.5382) -> kalau di imagespace, cuma c(188, 154, dummy=1) dan agak nggak akurat
 # y adalah: -1
+#
+#
+#
+
 # dy (y object/lantai dikurangi y camera) = 0 - 1 = -1
 # s = dy / (y hasil solve)
 yObject <- 0 # lantai Lumen: y == 0
 yCamera <- 1 # camera 1 meter di atas lantai
 dy <- yObject - yCamera
-uv <- c(188, 154, 1)
+uv <- c(119, 161, 1)
 xyz <- solve(qr(CMRt), uv)
-names(xyz) <- c('x', 'y', 'z')
+names(xyz) <- c('x', 'y', '-z')
 pander(xyz)
 # s = dy / (y hasil solve)
 s <- dy / xyz['y']
 pander(s)
-# kalikan hasil solve dengan s, maka didapatkan xyz sebenarnya
-# yaitu: c(0.8, -1.0, 6.0) +- galat
-xyz <- xyz * s
+# kalikan hasil solve dengan s, maka didapatkan x, y, z sebenarnya KOORDINAT KAMERA
+# tinggal translate dengan posisi kamera
+# (y bisa dikoreksi sesuai yang sudah diketahui)
+# dan tentunya: +- galat
+xyz_s <- xyz * s
+pander(xyz_s)
+names(xyz) <- c('x', 'y', 'z')
+xyz['x'] <- xyz_s[1] + tc['x']
+xyz['y'] <- xyz_s[2] + tc['y']
+xyz['z'] <- -xyz_s[3] + tc['z']
 pander(xyz)
 ```
 
