@@ -37,7 +37,7 @@ class LumenRouteConfig {
     //double imageWidth = 538;
     //double imageHeight = 303;
     // F : samsung s4: 4.3, lenovo hendy: 5.0
-    double F = 1.0; //focal length pada kamera (F) 35mm
+    double F = 3.5; //focal length pada kamera (F) 35mm
     //sensor :  Dan sensor 36mm x 24mm (Full-frame)
     double sensorWidth = 6.64;//lebar sensor
     double sensorHeight = 4.98;//tinggi sensor
@@ -45,7 +45,7 @@ class LumenRouteConfig {
     // NAO recommended pos in MIC (x=1.92, z=-1.97)
     // laptop Lenovo di atas meja MIC = Y 0.98m
     // meja depan bu Ria, x= ~2.5, z = ~ -3
-    Vector3 cameraPos = new Vector3(2.0, 0.98, -2.0);
+    Vector3 cameraPos = new Vector3(1.3, 0.98, -1.7);
 
     @Inject
     private Environment env;
@@ -86,11 +86,15 @@ class LumenRouteConfig {
                                 ocvImg.width(), ocvImg.height());
 
                         final HumanChanges humanChanges = PeopledetectMultiScale(ocvImg);
-                        final String humanDetectedsJson = toJson.getMapper().writeValueAsString(humanChanges);
-                        exchange.getOut().setBody(humanDetectedsJson);
+                        if (!humanChanges.getHumanDetecteds().isEmpty() || !humanChanges.getHumanMovings().isEmpty()) {
+                            final String humanDetectedsJson = toJson.getMapper().writeValueAsString(humanChanges);
+                            exchange.getOut().setBody(humanDetectedsJson);
+                        } else {
+                            exchange.getOut().setBody(null);
+                        }
                     })
-                        .to(humanDetectionUri)
-                        .to("log:OUT.lumen.arkan.human.detection");
+                        .choice()
+                        .when(body().isNotNull()).to(humanDetectionUri).to("log:OUT.lumen.arkan.human.detection");
             }
         };
     }
@@ -128,6 +132,8 @@ class LumenRouteConfig {
             for (Rect rect : rectList) {
                 float u=(float)rect.x + (rect.width/2);
                 float v=(float)rect.y + (rect.height*7/8);
+                float v1=(float)rect.y + (rect.height*1/8);
+                float vh = v - v1;
 
                 final Mat SUV=SetSUV(u, v);
                 //Get XYZ dari sUV yg telah diketahui (tapi in reality, s belum diketahui)
@@ -169,11 +175,17 @@ class LumenRouteConfig {
                     final HumanMoving humanMoving = new HumanMoving();
                     humanMoving.setHumanId(nearestHuman.getHumanId());
                     humanMoving.setPosition(humanPos);
+                    humanMoving.setImageU(Math.round(u));
+                    humanMoving.setImageV(Math.round(v));
+                    humanMoving.setImageVH(Math.round(vh));
                     humanChanges.getHumanMovings().add(humanMoving);
                 } else {
                     final HumanDetected humanDetected = new HumanDetected();
                     humanDetected.setHumanId(UUID.randomUUID().toString());
                     humanDetected.setPosition(humanPos);
+                    humanDetected.setImageU(Math.round(u));
+                    humanDetected.setImageV(Math.round(v));
+                    humanDetected.setImageVH(Math.round(vh));
                     humanChanges.getHumanDetecteds().add(humanDetected);
 
                     // add to database
@@ -220,7 +232,8 @@ class LumenRouteConfig {
         double sy = imageHeight * 1.0 / sensorHeight;//sekala y
         Mat cameraMatrix = Mat.zeros( 3, 3, CvType.CV_32F );
         double fx = F * sx;
-        double fy = F * sy;
+//        double fy = F * sy;
+        double fy = fx; // samain aja biar gampang, asumsi square pixel
         cameraMatrix.put(0, 0,  fx);
         cameraMatrix.put(1, 1, -fy);
         cameraMatrix.put(0, 2, imageWidth/2);//cx
@@ -249,9 +262,12 @@ class LumenRouteConfig {
         RxT.put(1, 1, Math.cos(Math.toRadians(angle)));
         RxT.put(2, 2, 1);
         //T
-        RxT.put(0, 3, -tc_x);//TX
-        RxT.put(1, 3, -tc_y);//TY
-        RxT.put(2, 3, tc_z);//TZ (remember, we're right-handed)
+//        RxT.put(0, 3, -tc_x);//TX
+//        RxT.put(1, 3, -tc_y);//TY
+//        RxT.put(2, 3, tc_z);//TZ (remember, we're right-handed)
+        RxT.put(0, 3, 0.0);//TX
+        RxT.put(1, 3, 0.0);//TY
+        RxT.put(2, 3, 0.0);//TZ (remember, we're right-handed)
         return RxT;
     }
 
