@@ -95,7 +95,7 @@ class LumenRouteConfig {
 
     private HumanChanges PeopledetectMultiScale(Mat imgMat)
     {
-        //CM
+        //CM 
         Mat CM=CameraMatrix();
         //RxT
         Mat RxT=RotationXTranpus(0);
@@ -282,37 +282,4 @@ class LumenRouteConfig {
         }
 
     }
-
-    //model 3D
-    public  class Coordinat3D
-    {
-        private float X;
-        private float Y;
-        private float Z;
-
-        public void setX(float x) {
-            this.X = x;
-        }
-
-        public float getX() {
-            return X;
-        }
-
-        public void setY(float y) {
-            this.Y = y;
-        }
-
-        public float getY() {
-            return Y;
-        }
-
-        public void setZ(float z) {
-            this.Z = z;
-        }
-
-        public float getZ() {
-            return Z;
-        }
-    }
-
 }
