@@ -34,16 +34,18 @@ class LumenRouteConfig {
 //    protected ToJson toJson
 
     //variable
-    double imageWidth = 538;
-    double imageHeight = 303;
-    double F = 4.3; //focal length pada kamera (F) 35mm
+    //double imageWidth = 538;
+    //double imageHeight = 303;
+    // F : samsung s4: 4.3, lenovo hendy: 5.0
+    double F = 1.0; //focal length pada kamera (F) 35mm
     //sensor :  Dan sensor 36mm x 24mm (Full-frame)
     double sensorWidth = 6.64;//lebar sensor
     double sensorHeight = 4.98;//tinggi sensor
-    double sx = imageWidth / sensorWidth; //sekala x
-    double sy = imageHeight / sensorHeight;//sekala y
-    double Yobject=0;
-    double Ycamera=1;
+    double Yobject = 0.0;
+    // NAO recommended pos in MIC (x=1.92, z=-1.97)
+    // laptop Lenovo di atas meja MIC = Y 0.98m
+    // meja depan bu Ria, x= ~2.5, z = ~ -3
+    Vector3 cameraPos = new Vector3(2.0, 0.98, -2.0);
 
     @Inject
     private Environment env;
@@ -77,10 +79,11 @@ class LumenRouteConfig {
 
                         final ImageObject imageObject = toJson.getMapper().readValue(
                                 (byte[]) exchange.getIn().getBody(), ImageObject.class);
-                        log.info("Object yang kita dapatkan: {}", imageObject);
+                        log.debug("Object yang kita dapatkan: {}", imageObject);
                         final DataUri dataUri = DataUri.parse(imageObject.getContentUrl(), StandardCharsets.UTF_8);
                         final Mat ocvImg = Highgui.imdecode(new MatOfByte(dataUri.getData()), Highgui.IMREAD_UNCHANGED);
-                        log.info("OpenCV Mat: rows={} cols={}", ocvImg.rows(), ocvImg.cols());
+                        log.debug("OpenCV Mat: rows={} cols={} w={} h={}", ocvImg.rows(), ocvImg.cols(),
+                                ocvImg.width(), ocvImg.height());
 
                         final HumanChanges humanChanges = PeopledetectMultiScale(ocvImg);
                         final String humanDetectedsJson = toJson.getMapper().writeValueAsString(humanChanges);
@@ -96,9 +99,9 @@ class LumenRouteConfig {
     private HumanChanges PeopledetectMultiScale(Mat imgMat)
     {
         //CM 
-        Mat CM=CameraMatrix();
+        Mat CM=CameraMatrix(imgMat.width(), imgMat.height());
         //RxT
-        Mat RxT=RotationXTranpus(0);
+        Mat RxT=RotationXTranpus(0, cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
         //CmRxt
         Mat CmRxT=GetCmRT(CM, RxT);
 
@@ -115,7 +118,7 @@ class LumenRouteConfig {
         hog.detectMultiScale(imgMat, foundLocations, foundWeights, 0.0,
                 winStride, padding, 1.05, 2.0, false);
 
-        ImageHumanDetection(imgMat,foundLocations,foundWeights);
+        ImageHumanDetection(imgMat, foundLocations, foundWeights);
 
         final HumanChanges humanChanges = new HumanChanges();
         if (foundLocations.rows() > 0) {
@@ -123,24 +126,26 @@ class LumenRouteConfig {
             List<Rect> rectList = foundLocations.toList();
             int i = 0;
             for (Rect rect : rectList) {
-                float x=(float)rect.x + (rect.width/2);
-                float y=(float)rect.y + (rect.height*7/8);
+                float u=(float)rect.x + (rect.width/2);
+                float v=(float)rect.y + (rect.height*7/8);
 
-                Mat SUV=SetSUV(x, y);
+                final Mat SUV=SetSUV(u, v);
                 //Get XYZ dari sUV yg telah diketahui (tapi in reality, s belum diketahui)
-                Mat inverse = new Mat(4, 3, CvType.CV_32F);
+                final Mat inverse = new Mat(4, 3, CvType.CV_32F);
                 Core.invert(CmRxT, inverse, Core.DECOMP_SVD);
-                Mat XYZ2 = new Mat(4, 1, CvType.CV_32F);
+                final Mat XYZ2 = new Mat(4, 1, CvType.CV_32F);
                 Core.gemm(inverse, SUV, 1, new Mat(), 0, XYZ2, 0);
 
                 //Nilai S
-                double S=(Yobject-Ycamera)/XYZ2.get(1, 0)[0];
+                double S = Math.abs((Yobject - cameraPos.getY()) / XYZ2.get(1, 0)[0]);
 
-                //Kalikan Dengan S
-                final Vector3 humanPos = new Vector3(
-                        XYZ2.get(0, 0)[0]*S,//XYZ2.get(0, 0)[0])
-                        XYZ2.get(1, 0)[0]*S,
-                        XYZ2.get(2, 0)[0]*S);
+                //Kalikan Dengan S, maka didapatkan x, y, z sebenarnya KOORDINAT KAMERA
+                // kembalikan dari camera coordinates ke world coordinates
+                // (kalo mau, y bisa dikoreksi sesuai yang sudah diketahui)
+                Vector3 humanPos = new Vector3(
+                        XYZ2.get(0, 0)[0]*S + cameraPos.getX(),
+                        Yobject,
+                        -XYZ2.get(2, 0)[0]*S + cameraPos.getZ()); // righthanded
 
                 // check if there's already human nearby
                 Double nearestDist = null;
@@ -150,7 +155,7 @@ class LumenRouteConfig {
                             Math.pow((double) (humanPos.getX() - it.getPosition().getX()), 2.0) +
                                     Math.pow((double) (humanPos.getY() - it.getPosition().getY()), 2.0) +
                                     Math.pow((double) (humanPos.getZ() - it.getPosition().getZ()), 2.0));
-                    if (distance <= 0.2 && (nearestDist == null || distance < nearestDist)) {
+                    if (distance <= 100 && (nearestDist == null || distance < nearestDist)) {
                         nearestDist = distance;
                         nearestHuman = it;
                     }
@@ -180,8 +185,10 @@ class LumenRouteConfig {
             }
         }
 
-        log.info("HumanChanges contains {} detected and {} moving", humanChanges.getHumanDetecteds().size(),
-                humanChanges.getHumanMovings().size());
+        log.info("HumanChanges contains {} detected and {} moving (from {} humans)",
+                humanChanges.getHumanDetecteds().size(),
+                humanChanges.getHumanMovings().size(),
+                humans.size());
         return humanChanges;
     }
 
@@ -207,21 +214,33 @@ class LumenRouteConfig {
 //        };
 //    }
 
-    private Mat CameraMatrix()
+    private Mat CameraMatrix(int imageWidth, int imageHeight)
     {
+        double sx = imageWidth * 1.0 / sensorWidth; //sekala x
+        double sy = imageHeight * 1.0 / sensorHeight;//sekala y
         Mat cameraMatrix = Mat.zeros( 3, 3, CvType.CV_32F );
         double fx = F * sx;
         double fy = F * sy;
-        cameraMatrix.put(0,0,fx);
-        cameraMatrix.put(1, 1, fy*-1);
+        cameraMatrix.put(0, 0,  fx);
+        cameraMatrix.put(1, 1, -fy);
         cameraMatrix.put(0, 2, imageWidth/2);//cx
         cameraMatrix.put(1, 2, imageHeight/2);//cy
         cameraMatrix.put(2, 2, 1);
         return cameraMatrix;
     }
 
-    private Mat RotationXTranpus(double angle)
+    /**
+     *
+     * @param angle
+     * @param tc_x Camera world position: x.
+     * @param tc_y Camera world position: y.
+     * @param tc_z Camera world position: z.
+     * @return
+     */
+    private Mat RotationXTranpus(double angle, double tc_x, double tc_y, double tc_z)
     {
+        // TODO: use the real rotation+translation matrix described in
+        // vperc-gh-pages/3dreconstruction.html "Rotasi 3D"
         Mat RxT = Mat.zeros( 3, 4, CvType.CV_32F );
         //Rx
         RxT.put(0, 0, Math.cos(Math.toRadians(angle)));//fx
@@ -230,9 +249,9 @@ class LumenRouteConfig {
         RxT.put(1, 1, Math.cos(Math.toRadians(angle)));
         RxT.put(2, 2, 1);
         //T
-        RxT.put(0, 3,0);//TX
-        RxT.put(1, 3,0);//TY
-        RxT.put(2, 3,0);//TZ
+        RxT.put(0, 3, -tc_x);//TX
+        RxT.put(1, 3, -tc_y);//TY
+        RxT.put(2, 3, tc_z);//TZ (remember, we're right-handed)
         return RxT;
     }
 
@@ -260,7 +279,7 @@ class LumenRouteConfig {
         return SUV;
     }
 
-    private void  ImageHumanDetection(Mat imgMat,MatOfRect foundLocations,MatOfDouble foundWeights)
+    private void ImageHumanDetection(Mat imgMat,MatOfRect foundLocations,MatOfDouble foundWeights)
     {
         final Point rectPoint1 = new Point();
         final Point rectPoint2 = new Point();
@@ -277,7 +296,7 @@ class LumenRouteConfig {
                 rectPoint2.y = rect.y + (rect.height*7/8);
 
                 Core.rectangle(imgMat, rectPoint1, rectPoint2, rectColor, 2);
-                Highgui.imwrite("d:\\Capture3.PNG", imgMat);
+                Highgui.imwrite("D:\\Capture3.png", imgMat);
             }
         }
 

@@ -36,7 +36,7 @@ public class VpercApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("java.library.path={}", System.getProperty("java.library.path"));
-        final Map<String, Double> personName = ImmutableMap.of("Kaoak", 124.3, "Zao", 1243.2);
-        log.info("Hello: {}", personName);
+//        final Map<String, Double> personName = ImmutableMap.of("Kaoak", 124.3, "Zao", 1243.2);
+//        log.info("Hello: {}", personName);
     }
 }
