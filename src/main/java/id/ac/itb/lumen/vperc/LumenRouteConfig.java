@@ -42,6 +42,8 @@ class LumenRouteConfig {
     double sensorHeight = 4.98;//tinggi sensor
     double sx = imageWidth / sensorWidth; //sekala x
     double sy = imageHeight / sensorHeight;//sekala y
+    double Yobject=0;
+    double Ycamera=1;
 
     @Inject
     private Environment env;
@@ -79,14 +81,6 @@ class LumenRouteConfig {
                         final DataUri dataUri = DataUri.parse(imageObject.getContentUrl(), StandardCharsets.UTF_8);
                         final Mat ocvImg = Highgui.imdecode(new MatOfByte(dataUri.getData()), Highgui.IMREAD_UNCHANGED);
                         log.info("OpenCV Mat: rows={} cols={}", ocvImg.rows(), ocvImg.cols());
-//                        Highgui.imwrite("d:\\Capture4.PNG", ocvImg);
-//                        PeopledetectMultiScale(ocvImg);
-
-//                        final File imageFile = new File("d:\\Capture2.PNG");
-//                        log.info("Processing image file '{}' ...", imageFile);
-//                        final Mat imgMat = Highgui.imread(imageFile.getPath());
-//                        log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
-
 
                         final HumanChanges humanChanges = PeopledetectMultiScale(ocvImg);
                         final String humanDetectedsJson = toJson.getMapper().writeValueAsString(humanChanges);
@@ -121,6 +115,8 @@ class LumenRouteConfig {
         hog.detectMultiScale(imgMat, foundLocations, foundWeights, 0.0,
                 winStride, padding, 1.05, 2.0, false);
 
+        ImageHumanDetection(imgMat,foundLocations,foundWeights);
+
         final HumanChanges humanChanges = new HumanChanges();
         if (foundLocations.rows() > 0) {
             List<Double> weightList = foundWeights.toList();
@@ -136,10 +132,15 @@ class LumenRouteConfig {
                 Core.invert(CmRxT, inverse, Core.DECOMP_SVD);
                 Mat XYZ2 = new Mat(4, 1, CvType.CV_32F);
                 Core.gemm(inverse, SUV, 1, new Mat(), 0, XYZ2, 0);
+
+                //Nilai S
+                double S=(Yobject-Ycamera)/XYZ2.get(1, 0)[0];
+
+                //Kalikan Dengan S
                 final Vector3 humanPos = new Vector3(
-                        XYZ2.get(0, 0)[0],//XYZ2.get(0, 0)[0])
-                        XYZ2.get(1, 0)[0],
-                        XYZ2.get(2, 0)[0]);
+                        XYZ2.get(0, 0)[0]*S,//XYZ2.get(0, 0)[0])
+                        XYZ2.get(1, 0)[0]*S,
+                        XYZ2.get(2, 0)[0]*S);
 
                 // check if there's already human nearby
                 Double nearestDist = null;
@@ -149,7 +150,7 @@ class LumenRouteConfig {
                             Math.pow((double) (humanPos.getX() - it.getPosition().getX()), 2.0) +
                                     Math.pow((double) (humanPos.getY() - it.getPosition().getY()), 2.0) +
                                     Math.pow((double) (humanPos.getZ() - it.getPosition().getZ()), 2.0));
-                    if (distance <= 0.3 && (nearestDist == null || distance < nearestDist)) { // 30cm
+                    if (distance <= 0.3 && (nearestDist == null || distance < nearestDist)) {
                         nearestDist = distance;
                         nearestHuman = it;
                     }
@@ -179,6 +180,8 @@ class LumenRouteConfig {
             }
         }
 
+        log.info("HumanChanges contains {} detected and {} moving", humanChanges.getHumanDetecteds().size(),
+                humanChanges.getHumanMovings().size());
         return humanChanges;
     }
 
@@ -203,9 +206,6 @@ class LumenRouteConfig {
 //            }
 //        };
 //    }
-
-
-
 
     private Mat CameraMatrix()
     {
@@ -258,6 +258,29 @@ class LumenRouteConfig {
         SUV.put(1, 0,y);
         SUV.put(2, 0, 1);
         return SUV;
+    }
+
+    private void  ImageHumanDetection(Mat imgMat,MatOfRect foundLocations,MatOfDouble foundWeights)
+    {
+        final Point rectPoint1 = new Point();
+        final Point rectPoint2 = new Point();
+        final Scalar rectColor = new Scalar(0, 255, 0);
+
+        if (foundLocations.rows() > 0) {
+            List<Double> weightList = foundWeights.toList();
+            List<Rect> rectList = foundLocations.toList();
+            int i = 0;
+            for (Rect rect : rectList) {
+                rectPoint1.x = rect.x+(rect.width/2);
+                rectPoint1.y = rect.y+ (rect.height*1/8);
+                rectPoint2.x = rect.x + (rect.width/2);
+                rectPoint2.y = rect.y + (rect.height*7/8);
+
+                Core.rectangle(imgMat, rectPoint1, rectPoint2, rectColor, 2);
+                Highgui.imwrite("d:\\Capture3.PNG", imgMat);
+            }
+        }
+
     }
 
     //model 3D
