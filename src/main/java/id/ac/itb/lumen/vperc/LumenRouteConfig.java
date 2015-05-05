@@ -36,7 +36,7 @@ class LumenRouteConfig {
     //variable
     //double imageWidth = 538;
     //double imageHeight = 303;
-    // F : samsung s4: 4.3, lenovo hendy: 5.0
+    // F : samsung s4: 4.3, lenovo hendy: 3.5 di 320x240
     double F = 3.5; //focal length pada kamera (F) 35mm
     //sensor :  Dan sensor 36mm x 24mm (Full-frame)
     double sensorWidth = 6.64;//lebar sensor
@@ -74,16 +74,15 @@ class LumenRouteConfig {
             public void configure() throws Exception {
                 final String humanDetectionUri = "rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&routingKey=lumen.arkan.human.detection";
                 from("rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&routingKey=avatar.NAO.data.image")
-                    .to("log:IN.avatar.NAO.data.image?showHeaders=true&showAll=true&multiline=true")
+                    //.to("log:IN.avatar.NAO.data.image?showHeaders=true&showAll=true&multiline=true")
                     .process(exchange -> {
+                        long startTime = System.currentTimeMillis();
 
                         final ImageObject imageObject = toJson.getMapper().readValue(
                                 (byte[]) exchange.getIn().getBody(), ImageObject.class);
                         log.debug("Object yang kita dapatkan: {}", imageObject);
                         final DataUri dataUri = DataUri.parse(imageObject.getContentUrl(), StandardCharsets.UTF_8);
                         final Mat ocvImg = Highgui.imdecode(new MatOfByte(dataUri.getData()), Highgui.IMREAD_UNCHANGED);
-                        log.debug("OpenCV Mat: rows={} cols={} w={} h={}", ocvImg.rows(), ocvImg.cols(),
-                                ocvImg.width(), ocvImg.height());
 
                         final HumanChanges humanChanges = PeopledetectMultiScale(ocvImg);
                         if (!humanChanges.getHumanDetecteds().isEmpty() || !humanChanges.getHumanMovings().isEmpty()) {
@@ -92,9 +91,14 @@ class LumenRouteConfig {
                         } else {
                             exchange.getOut().setBody(null);
                         }
+
+                        long duration = System.currentTimeMillis() - startTime;
+                        log.info("OpenCV Mat processed in {}ms: rows={} cols={} w={} h={}",
+                                duration, ocvImg.rows(), ocvImg.cols(),
+                                ocvImg.width(), ocvImg.height());
                     })
                         .choice()
-                        .when(body().isNotNull()).to(humanDetectionUri).to("log:OUT.lumen.arkan.human.detection");
+                        .when(body().isNotNull()).to(humanDetectionUri)/*.to("log:OUT.lumen.arkan.human.detection")*/;
             }
         };
     }
@@ -161,7 +165,7 @@ class LumenRouteConfig {
                             Math.pow((double) (humanPos.getX() - it.getPosition().getX()), 2.0) +
                                     Math.pow((double) (humanPos.getY() - it.getPosition().getY()), 2.0) +
                                     Math.pow((double) (humanPos.getZ() - it.getPosition().getZ()), 2.0));
-                    if (distance <= 1.0 && (nearestDist == null || distance < nearestDist)) {
+                    if (distance <= 1.5 && (nearestDist == null || distance < nearestDist)) {
                         nearestDist = distance;
                         nearestHuman = it;
                     }
