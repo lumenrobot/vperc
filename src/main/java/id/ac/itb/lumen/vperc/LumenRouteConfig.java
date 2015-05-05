@@ -161,7 +161,7 @@ class LumenRouteConfig {
                             Math.pow((double) (humanPos.getX() - it.getPosition().getX()), 2.0) +
                                     Math.pow((double) (humanPos.getY() - it.getPosition().getY()), 2.0) +
                                     Math.pow((double) (humanPos.getZ() - it.getPosition().getZ()), 2.0));
-                    if (distance <= 100 && (nearestDist == null || distance < nearestDist)) {
+                    if (distance <= 1.0 && (nearestDist == null || distance < nearestDist)) {
                         nearestDist = distance;
                         nearestHuman = it;
                     }
