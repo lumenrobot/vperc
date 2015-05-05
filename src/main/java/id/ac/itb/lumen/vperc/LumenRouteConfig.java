@@ -45,7 +45,7 @@ class LumenRouteConfig {
     // NAO recommended pos in MIC (x=1.92, z=-1.97)
     // laptop Lenovo di atas meja MIC = Y 0.98m
     // meja depan bu Ria, x= ~2.5, z = ~ -3
-    Vector3 cameraPos = new Vector3(1.3, 0.98, -1.7);
+    Vector3 cameraPos = new Vector3(1.6, 0.98, -1.7);
 
     @Inject
     private Environment env;
