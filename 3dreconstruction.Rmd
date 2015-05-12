@@ -4,6 +4,7 @@ author: "Sigit Ari Wijanarko, Hendy Irawan"
 date: "Saturday, April 04, 2015"
 output:
   html_document:
+    number_sections: yes
     self_contained: no
 ---
 
@@ -32,7 +33,7 @@ $$
 $-f_y$ diminuskan karena di gambar 2D, pojok atas adalah $v=0$ dan bawah adalah misalnya $v=240$ (untuk dimensi 320×240); padahal di 3D bawah adalah $y<0$ dan atas adalah $y>0$.
 
 Untuk mendapatkan $f_x$ dan $f_y$, kita menentukan dulu focal length dan ukuran "sensor".
-Anggap focal length ($F$) 35mm. Dan sensor 36mm x 24mm (Full-frame). Trus resolusi gambar 320×240.
+Anggap focal length ($F$) 35mm. Dan sensor 36mm x 24mm (Full-frame). Resolusi gambar 320×240.
 
 * $s_x$ = image width(px) / sensor width(mm) = 320px / 36mm = 8.9px/mm
 * $s_y$ = image height(px) / sensor height(mm) = 240px / 24mm = 10px/mm
@@ -90,7 +91,7 @@ CM <- matrix(c(f['x'],       0, center['u'],
 pander(CM, caption='camera matrix')
 ```
 
-Kalau udah punya CM maka perlu bikin joint rotation-translation matrix. Ini Hendy agak bingung jadi biarin Sigit aja yang pusing :p
+Kalau sudah punya CM maka perlu membuat joint rotation-translation matrix.
 
 ```{r}
 theta <- 0*pi # harusnya ini gamma, lihat penjelasan di bawah tentang rotasi 3D
@@ -106,7 +107,8 @@ pander(Rt)
 ```
 
 Dari sini kita bisa memproyeksikan sebuah titik 3D ke 2D.
-Kalau benar, maka untuk dari 2D ke 3D ya tinggal dibalik.
+Bila sudah tepat, maka untuk dari 2D ke 3D prosesnya dilakukan kebalikannya
+(bila diketahui sebuah elemen dari vektor posisi, misalnya elemen Y).
 
 ```{r}
                 # x    y   -z   1
@@ -130,7 +132,7 @@ colnames(XYZ) <- c('x', 'y', '-z', '1')
 pander(XYZ)
 ```
 
-Tinggal dikalikan dech:
+Lalu dikalikan pointnya secara individual:
 
 ```{r}
 sUV <- t(CM %*% Rt %*% XYZ[14,]) # point ke-14
@@ -140,7 +142,7 @@ if (sUV['s'] != 0) UV <- sUV / sUV['s'] else UV <- sUV
 pander(UV)
 ```
 
-Atau ramean:
+Atau bersama-sama menggunakan matrix:
 
 ```{r}
 sUV <- t(CM %*% Rt %*% t(XYZ))
@@ -154,7 +156,7 @@ UV[,'s'] <- sUV[,'s']
 pander(UV)
 ```
 
-Yuk coba kita plot.
+Hasilnya dapat diplot:
 
 ```{r, warning=FALSE}
 library(ggplot2)

@@ -76,9 +76,7 @@ Maka semua koordinat scene adalah untuk X pasti positif (dari west=0 ke east), d
 
 From [X3D Concepts](http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html):
 
-Table 4.2 lists the initial base units for ISO/IEC 19775.
-
-Table 4.2 — Standard units
+Table 4.2 Initial base units for ISO/IEC 19775
 
 | Category  | Initial base unit |
 |-----------|-------------------|
@@ -87,7 +85,7 @@ Table 4.2 — Standard units
 |length	| metre |
 |mass	| kilogram |
 
-Table 4.3 — Derived units
+Table 4.3 Derived units
 
 | Category  | Initial base unit |
 |-----------|-------------------|
@@ -135,11 +133,11 @@ Dalam sistem Lumen yang dipakai sebagai standar adalah sistem X3D. Jadi pada saa
     zIso <- -zUnity
     ```
 
-Untuk rotasi 3D, menggunakan style X3D. See also: [rotation Unreal](https://docs.unrealengine.com/latest/INT/API/Runtime/Core/Math/FRotator/index.html). Unit sudut adalah degrees (counterclockwise+) agar lebih mudah karena sudut degrees juga dipakai oleh Unreal/Unity/Blender, meski standar ISO adalah radian. Pas kalkulasi internal baru diubah ke radian. Nama sudutnya buka alpha, beta, gamma tapi yang lebih deskriptif yaitu pitch (tengadah), roll (geleng clockwise), yaw (menoleh ke kiri):
+Untuk rotasi 3D, menggunakan style X3D. See also: [rotation Unreal](https://docs.unrealengine.com/latest/INT/API/Runtime/Core/Math/FRotator/index.html). Unit sudut adalah degrees (counterclockwise+) agar lebih mudah karena sudut degrees juga dipakai oleh Unreal/Unity/Blender, meski standar ISO adalah radian. Pas kalkulasi internal baru diubah ke radian. Nama sudutnya buka alpha, beta, gamma tapi yang lebih deskriptif yaitu pitch (tengadah), yaw (menoleh ke kiri), roll (geleng counterclockwise):
 
-* Pitch (RX):  Looking up and down (0=Straight Ahead, +Up, -Down).
-* Roll (RY): Rotation about axis of screen, 0=Straight, +Clockwise, -CCW.
-* Yaw (RZ):  Rotating around (running in circles), 0=North, +West, -East. Kalo di Unreal: 0=East, +North, -South.
+* **Pitch (RX)**:  Looking up and down (0=Straight Ahead, +Up, -Down).
+* **Yaw (RY)**:  Rotating around (running in circles), 0=North, +West, -East. Kalo di Unreal: 0=East, +North, -South.
+* **Roll (RZ)**: Rotation about axis of screen, 0=Straight, +CCW, -Clockwise.
 
 ### Tile Map Service (TMS)
 

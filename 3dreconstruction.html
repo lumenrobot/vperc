@@ -70,11 +70,11 @@ img {
 
 
 <div id="units-coordinate-system" class="section level2">
-<h2>Units &amp; Coordinate System</h2>
+<h2><span class="header-section-number">0.1</span> Units &amp; Coordinate System</h2>
 <p>Lihat: <a href="coordinates.html">Lumen Units and 2D/3D Coordinate System</a></p>
 </div>
 <div id="d-reconstruction" class="section level2">
-<h2>3D Reconstruction</h2>
+<h2><span class="header-section-number">0.2</span> 3D Reconstruction</h2>
 <p>Formula: <a href="http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html" class="uri">http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html</a></p>
 <pre><code>s * UV = CM * Rt * XYZ</code></pre>
 <p>s adalah pembagi dari UV, bila UV = (20, 10, 2) maka u = 20/2 = 10, v = 10/2 = 5.</p>
@@ -85,8 +85,8 @@ f_x &amp;    0 &amp; c_x \\
   0 &amp;    0 &amp;   1
 \end{array}\right]
 \]</span></p>
-<p><span class="math">\(-f_y\)</span> diminuskan karena di gambar 2D, pojok atas adalah <span class="math">\(v=0\)</span> dan bawah adalah misalnya <span class="math">\(v=240\)</span> (untuk dimensi 320Ã240); padahal di 3D bawah adalah <span class="math">\(y&lt;0\)</span> dan atas adalah <span class="math">\(y&gt;0\)</span>.</p>
-<p>Untuk mendapatkan <span class="math">\(f_x\)</span> dan <span class="math">\(f_y\)</span>, kita menentukan dulu focal length dan ukuran “sensor”. Anggap focal length (<span class="math">\(F\)</span>) 35mm. Dan sensor 36mm x 24mm (Full-frame). Trus resolusi gambar 320Ã240.</p>
+<p><span class="math">\(-f_y\)</span> diminuskan karena di gambar 2D, pojok atas adalah <span class="math">\(v=0\)</span> dan bawah adalah misalnya <span class="math">\(v=240\)</span> (untuk dimensi 320×240); padahal di 3D bawah adalah <span class="math">\(y&lt;0\)</span> dan atas adalah <span class="math">\(y&gt;0\)</span>.</p>
+<p>Untuk mendapatkan <span class="math">\(f_x\)</span> dan <span class="math">\(f_y\)</span>, kita menentukan dulu focal length dan ukuran “sensor”. Anggap focal length (<span class="math">\(F\)</span>) 35mm. Dan sensor 36mm x 24mm (Full-frame). Resolusi gambar 320×240.</p>
 <ul>
 <li><span class="math">\(s_x\)</span> = image width(px) / sensor width(mm) = 320px / 36mm = 8.9px/mm</li>
 <li><span class="math">\(s_y\)</span> = image height(px) / sensor height(mm) = 240px / 24mm = 10px/mm</li>
@@ -143,7 +143,7 @@ pander(CM, caption=&#39;camera matrix&#39;)</code></pre>
 <li>Aperture size F2.2</li>
 <li>Focal length (35mm equivalent): 31 mm –&gt; harus dikonversi ke focal length fisik = 4.3mm (<a href="http://www.digified.net/focallength/" class="uri">http://www.digified.net/focallength/</a>)</li>
 <li>Camera sensor size: 1/3.06&quot; (diagonal: 0.3268&quot; = 8.3mm, dimensi: 6.64mm x 4.98mm)</li>
-<li>Pixel size: 1.14 Î¼m</li>
+<li>Pixel size: 1.14 μm</li>
 </ul>
 <pre class="r"><code># Samsung Galaxy S4
 focalLength &lt;- 4.3 #mm
@@ -189,16 +189,16 @@ pander(CM, caption=&#39;camera matrix&#39;)</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Kalau udah punya CM maka perlu bikin joint rotation-translation matrix. Ini Hendy agak bingung jadi biarin Sigit aja yang pusing :p</p>
+<p>Kalau sudah punya CM maka perlu membuat joint rotation-translation matrix.</p>
 <pre class="r"><code>theta &lt;- 0*pi # harusnya ini gamma, lihat penjelasan di bawah tentang rotasi 3D
-t &lt;- c(0, 0, 0)
-names(t) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)
-pander(t)</code></pre>
-<p><em>0</em>, <em>0</em> and <em>0</em></p>
+tc &lt;- c(0, 1.0, -1.0)
+names(tc) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)
+pander(tc)</code></pre>
+<p><em>0</em>, <em>1</em> and <em>-1</em></p>
 <pre class="r"><code># rotasi ini sebenarnya masih RZ, belum R
-Rt &lt;- matrix(c(cos(theta), -sin(theta), 0, t[&#39;x&#39;],
-               sin(theta),  cos(theta), 0, t[&#39;y&#39;],
-               0,           0,          1, t[&#39;z&#39;]),
+Rt &lt;- matrix(c(cos(theta), -sin(theta), 0, -tc[&#39;x&#39;],
+               sin(theta),  cos(theta), 0, -tc[&#39;y&#39;], 
+               0,           0,          1,  tc[&#39;z&#39;]), # right-handed
              ncol=4, byrow=TRUE)
 pander(Rt)</code></pre>
 <table>
@@ -219,35 +219,35 @@ pander(Rt)</code></pre>
 <td align="left">0</td>
 <td align="left">1</td>
 <td align="left">0</td>
-<td align="left">0</td>
+<td align="left">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">0</td>
 <td align="left">0</td>
 <td align="left">1</td>
-<td align="left">0</td>
+<td align="left">-1</td>
 </tr>
 </tbody>
 </table>
-<p>Dari sini kita bisa memproyeksikan sebuah titik 3D ke 2D. Kalau benar, maka untuk dari 2D ke 3D ya tinggal dibalik.</p>
-<pre class="r"><code>                # x    y    z   1
-XYZ &lt;- matrix(c(  0,   0,0.01,  1, # persis di tengah
-                  0,   0,   1,  1, # persis di tengah, agak ke depan
-                 -1,   0,   1,  1, # depan, agak ke kiri
-                  3,   0,   1,  1, # depan, lebih ke kanan
-                  0,   1,   1,  1, # depan, atas
-                  0,  -3,   1,  1, # depan, lebih ke bawah
-                 -1,  -3,   1,  1, # depan, kiri atas
-                  2,   4,   1,  1, # depan, kanan atas
-                  0,   0,   5,  1, # persis di tengah, depan banget
-                 -1,   0,   5,  1, # depan banget, agak ke kiri
-                  3,   0,   5,  1, # depan banget, lebih ke kanan
-                  0,   1,   5,  1, # depan banget, atas
-                  0,  -3,   5,  1, # depan banget, lebih ke bawah
-                 -1,  -3,   5,  1, # depan banget, kiri atas
-                  2,   4,   5,  1),# depan banget, kanan atas
+<p>Dari sini kita bisa memproyeksikan sebuah titik 3D ke 2D. Bila sudah tepat, maka untuk dari 2D ke 3D prosesnya dilakukan kebalikannya (bila diketahui sebuah elemen dari vektor posisi, misalnya elemen Y).</p>
+<pre class="r"><code>                # x    y   -z   1
+XYZ &lt;- matrix(c(  0,   1,1.01,  1, # persis di tengah
+                  0,   1,   2,  1, # persis di tengah, agak ke depan
+                 -1,   1,   2,  1, # depan, agak ke kiri
+                  3,   1,   2,  1, # depan, lebih ke kanan
+                  0,   2,   2,  1, # depan, atas
+                  0,   0,   2,  1, # depan, lebih ke bawah
+                 -1,   0,   2,  1, # depan, kiri bawah
+                  2,   5,   2,  1, # depan, kanan atas
+                  0,   1,   6,  1, # persis di tengah, depan banget
+                 -1,   1,   6,  1, # depan banget, agak ke kiri
+                  3,   1,   6,  1, # depan banget, lebih ke kanan
+                  0,   2,   6,  1, # depan banget, atas
+                  0,   0,   6,  1, # depan banget, lebih ke bawah
+                 -1,   0,   6,  1, # depan banget, kiri bawah
+                  2,   5,   6,  1),# depan banget, kanan atas
               ncol=4, byrow=TRUE)
-colnames(XYZ) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;1&#39;)
+colnames(XYZ) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;-z&#39;, &#39;1&#39;)
 pander(XYZ)</code></pre>
 <table>
 <colgroup>
@@ -260,113 +260,113 @@ pander(XYZ)</code></pre>
 <tr class="header">
 <th align="center">x</th>
 <th align="center">y</th>
-<th align="center">z</th>
+<th align="center">-z</th>
 <th align="center">1</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="center">0</td>
-<td align="center">0</td>
-<td align="center">0.01</td>
+<td align="center">1</td>
+<td align="center">1.01</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">0</td>
-<td align="center">0</td>
 <td align="center">1</td>
+<td align="center">2</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">-1</td>
-<td align="center">0</td>
 <td align="center">1</td>
+<td align="center">2</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">3</td>
-<td align="center">0</td>
 <td align="center">1</td>
+<td align="center">2</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">0</td>
-<td align="center">1</td>
-<td align="center">1</td>
+<td align="center">2</td>
+<td align="center">2</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">0</td>
-<td align="center">-3</td>
-<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">2</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">-1</td>
-<td align="center">-3</td>
-<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">2</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">2</td>
-<td align="center">4</td>
-<td align="center">1</td>
+<td align="center">5</td>
+<td align="center">2</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">0</td>
-<td align="center">0</td>
-<td align="center">5</td>
+<td align="center">1</td>
+<td align="center">6</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">-1</td>
-<td align="center">0</td>
-<td align="center">5</td>
+<td align="center">1</td>
+<td align="center">6</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">3</td>
-<td align="center">0</td>
-<td align="center">5</td>
+<td align="center">1</td>
+<td align="center">6</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">0</td>
-<td align="center">1</td>
-<td align="center">5</td>
+<td align="center">2</td>
+<td align="center">6</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">0</td>
-<td align="center">-3</td>
-<td align="center">5</td>
+<td align="center">0</td>
+<td align="center">6</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
 <td align="center">-1</td>
-<td align="center">-3</td>
-<td align="center">5</td>
+<td align="center">0</td>
+<td align="center">6</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">2</td>
-<td align="center">4</td>
 <td align="center">5</td>
+<td align="center">6</td>
 <td align="center">1</td>
 </tr>
 </tbody>
 </table>
-<p>Tinggal dikalikan dech:</p>
-<pre class="r"><code>sUV &lt;- t(CM %*% Rt %*% XYZ[4,]) # point ke-4
+<p>Lalu dikalikan pointnya secara individual:</p>
+<pre class="r"><code>sUV &lt;- t(CM %*% Rt %*% XYZ[14,]) # point ke-14
 names(sUV) &lt;- c(&#39;u&#39;, &#39;v&#39;, &#39;s&#39;)
 pander(sUV)</code></pre>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left">781.7</td>
-<td align="left">120</td>
-<td align="left">1</td>
+<td align="left">592.8</td>
+<td align="left">807.2</td>
+<td align="left">5</td>
 </tr>
 </tbody>
 </table>
@@ -375,13 +375,13 @@ pander(UV)</code></pre>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left">781.7</td>
-<td align="left">120</td>
+<td align="left">118.6</td>
+<td align="left">161.4</td>
 <td align="left">1</td>
 </tr>
 </tbody>
 </table>
-<p>Atau ramean:</p>
+<p>Atau bersama-sama menggunakan matrix:</p>
 <pre class="r"><code>sUV &lt;- t(CM %*% Rt %*% t(XYZ))
 colnames(sUV) &lt;- c(&#39;su&#39;, &#39;sv&#39;, &#39;s&#39;)
 pander(sUV)</code></pre>
@@ -426,12 +426,12 @@ pander(sUV)</code></pre>
 </tr>
 <tr class="even">
 <td align="center">160</td>
-<td align="center">741.7</td>
+<td align="center">327.2</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">-47.23</td>
-<td align="center">741.7</td>
+<td align="center">327.2</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
@@ -461,12 +461,12 @@ pander(sUV)</code></pre>
 </tr>
 <tr class="odd">
 <td align="center">800</td>
-<td align="center">1222</td>
+<td align="center">807.2</td>
 <td align="center">5</td>
 </tr>
 <tr class="even">
 <td align="center">592.8</td>
-<td align="center">1222</td>
+<td align="center">807.2</td>
 <td align="center">5</td>
 </tr>
 <tr class="odd">
@@ -523,12 +523,12 @@ pander(UV)</code></pre>
 </tr>
 <tr class="even">
 <td align="center">160</td>
-<td align="center">741.7</td>
+<td align="center">327.2</td>
 <td align="center">1</td>
 </tr>
 <tr class="odd">
 <td align="center">-47.23</td>
-<td align="center">741.7</td>
+<td align="center">327.2</td>
 <td align="center">1</td>
 </tr>
 <tr class="even">
@@ -558,12 +558,12 @@ pander(UV)</code></pre>
 </tr>
 <tr class="odd">
 <td align="center">160</td>
-<td align="center">244.3</td>
+<td align="center">161.4</td>
 <td align="center">5</td>
 </tr>
 <tr class="even">
 <td align="center">118.6</td>
-<td align="center">244.3</td>
+<td align="center">161.4</td>
 <td align="center">5</td>
 </tr>
 <tr class="odd">
@@ -573,7 +573,7 @@ pander(UV)</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Yuk coba kita plot.</p>
+<p>Hasilnya dapat diplot:</p>
 <pre class="r"><code>library(ggplot2)
 df &lt;- data.frame(UV)
 df$id &lt;- rownames(df)
@@ -642,7 +642,7 @@ pander(df)</code></pre>
 </tr>
 <tr class="even">
 <td align="center">160</td>
-<td align="center">741.7</td>
+<td align="center">327.2</td>
 <td align="center">1</td>
 <td align="center">6</td>
 <td align="center">1</td>
@@ -650,7 +650,7 @@ pander(df)</code></pre>
 </tr>
 <tr class="odd">
 <td align="center">-47.23</td>
-<td align="center">741.7</td>
+<td align="center">327.2</td>
 <td align="center">1</td>
 <td align="center">7</td>
 <td align="center">1</td>
@@ -698,7 +698,7 @@ pander(df)</code></pre>
 </tr>
 <tr class="odd">
 <td align="center">160</td>
-<td align="center">244.3</td>
+<td align="center">161.4</td>
 <td align="center">5</td>
 <td align="center">13</td>
 <td align="center">1</td>
@@ -706,7 +706,7 @@ pander(df)</code></pre>
 </tr>
 <tr class="even">
 <td align="center">118.6</td>
-<td align="center">244.3</td>
+<td align="center">161.4</td>
 <td align="center">5</td>
 <td align="center">14</td>
 <td align="center">1</td>
@@ -795,79 +795,79 @@ pander(df)</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">20883</td>
-<td align="center">120</td>
-<td align="center">0.01</td>
+<td align="center">365.2</td>
+<td align="center">-85.18</td>
+<td align="center">1.01</td>
 </tr>
 <tr class="even">
-<td align="center">367.2</td>
-<td align="center">120</td>
-<td align="center">1</td>
+<td align="center">263.6</td>
+<td align="center">16.39</td>
+<td align="center">2</td>
 </tr>
 <tr class="odd">
 <td align="center">160</td>
-<td align="center">120</td>
-<td align="center">1</td>
+<td align="center">16.39</td>
+<td align="center">2</td>
 </tr>
 <tr class="even">
-<td align="center">988.9</td>
-<td align="center">120</td>
-<td align="center">1</td>
+<td align="center">574.5</td>
+<td align="center">16.39</td>
+<td align="center">2</td>
 </tr>
 <tr class="odd">
-<td align="center">367.2</td>
+<td align="center">263.6</td>
 <td align="center">-87.23</td>
-<td align="center">1</td>
+<td align="center">2</td>
 </tr>
 <tr class="even">
-<td align="center">367.2</td>
-<td align="center">741.7</td>
-<td align="center">1</td>
+<td align="center">263.6</td>
+<td align="center">120</td>
+<td align="center">2</td>
 </tr>
 <tr class="odd">
 <td align="center">160</td>
-<td align="center">741.7</td>
-<td align="center">1</td>
+<td align="center">120</td>
+<td align="center">2</td>
 </tr>
 <tr class="even">
-<td align="center">781.7</td>
-<td align="center">-708.9</td>
-<td align="center">1</td>
+<td align="center">470.8</td>
+<td align="center">-398.1</td>
+<td align="center">2</td>
 </tr>
 <tr class="odd">
-<td align="center">201.4</td>
+<td align="center">194.5</td>
+<td align="center">85.46</td>
+<td align="center">6</td>
+</tr>
+<tr class="even">
+<td align="center">160</td>
+<td align="center">85.46</td>
+<td align="center">6</td>
+</tr>
+<tr class="odd">
+<td align="center">298.2</td>
+<td align="center">85.46</td>
+<td align="center">6</td>
+</tr>
+<tr class="even">
+<td align="center">194.5</td>
+<td align="center">50.92</td>
+<td align="center">6</td>
+</tr>
+<tr class="odd">
+<td align="center">194.5</td>
 <td align="center">120</td>
-<td align="center">5</td>
+<td align="center">6</td>
 </tr>
 <tr class="even">
 <td align="center">160</td>
 <td align="center">120</td>
-<td align="center">5</td>
+<td align="center">6</td>
 </tr>
 <tr class="odd">
-<td align="center">325.8</td>
-<td align="center">120</td>
-<td align="center">5</td>
-</tr>
-<tr class="even">
-<td align="center">201.4</td>
-<td align="center">78.55</td>
-<td align="center">5</td>
-</tr>
-<tr class="odd">
-<td align="center">201.4</td>
-<td align="center">244.3</td>
-<td align="center">5</td>
-</tr>
-<tr class="even">
-<td align="center">160</td>
-<td align="center">244.3</td>
-<td align="center">5</td>
-</tr>
-<tr class="odd">
-<td align="center">284.3</td>
-<td align="center">-45.78</td>
-<td align="center">5</td>
+<td align="center">263.6</td>
+<td align="center">-52.69</td>
+<td align="center">6</td>
 </tr>
 </tbody>
 </table>
@@ -878,7 +878,7 @@ pander(df)</code></pre>
 <p><img src="3dreconstruction_files/figure-html/unnamed-chunk-8-1.png" title="" alt="" width="672" /></p>
 </div>
 <div id="memplot-lantai" class="section level2">
-<h2>Memplot ‘lantai’</h2>
+<h2><span class="header-section-number">0.3</span> Memplot ‘lantai’</h2>
 <pre class="r"><code># create 100 lattice points (10x10) spanning from X=-2..+2 and Z =0..10, Y constant = -1
 XYZ &lt;- matrix(nrow = 100, ncol=4)
 colnames(XYZ) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;dummy&#39;)
@@ -1749,16 +1749,20 @@ ggplot(df, aes(x=u, y=v)) + #geom_point(color=rownames(df)) +
 <p><img src="3dreconstruction_files/figure-html/unnamed-chunk-13-1.png" title="" alt="" width="672" /></p>
 </div>
 <div id="d-reconstruction-from-2d" class="section level2">
-<h2>3D Reconstruction from 2D</h2>
+<h2><span class="header-section-number">0.4</span> 3D Reconstruction from 2D</h2>
 <p>First, we multiply the CM with Rt:</p>
 <pre class="r"><code>theta &lt;- 0*pi
-t &lt;- c(0, 0, 0)
-names(t) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)
-pander(t)</code></pre>
-<p><em>0</em>, <em>0</em> and <em>0</em></p>
-<pre class="r"><code>Rt &lt;- matrix(c(cos(theta), -sin(theta), 0, t[&#39;x&#39;],
-               sin(theta),  cos(theta), 0, t[&#39;y&#39;],
-               0,           0,          1, t[&#39;z&#39;]),
+tc &lt;- c(0, 1.0, -1.0)
+names(tc) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)
+pander(tc)</code></pre>
+<p><em>0</em>, <em>1</em> and <em>-1</em></p>
+<pre class="r"><code>#Rt &lt;- matrix(c(cos(theta), -sin(theta), 0, -tc[&#39;x&#39;],
+#               sin(theta),  cos(theta), 0, -tc[&#39;y&#39;],
+#               0,           0,          1,  tc[&#39;z&#39;]), # right-handed
+#             ncol=4, byrow=TRUE)
+Rt &lt;- matrix(c(cos(theta), -sin(theta), 0, 0,
+               sin(theta),  cos(theta), 0, 0,
+               0,           0,          1, 0), # right-handed
              ncol=4, byrow=TRUE)
 colnames(Rt) &lt;- c(&#39;r1&#39;, &#39;r2&#39;, &#39;r3&#39;, &#39;t&#39;)
 pander(Rt)</code></pre>
@@ -1837,28 +1841,44 @@ pander(CMRt)</code></pre>
 </tbody>
 </table>
 <p>Bila diketahui: u, v, dan y dari object, maka:</p>
-<pre class="r"><code># xyz yang diinginkan: c(0.8, -1.0, 6.0)
+<pre class="r"><code># case baru: xyz yang diinginkan: point ke-14: c(-1, 0, -6.0) 
+# uv(s) adalah: c(118.6, 161.4) -&gt; kalau di imagespace, cuma c(119, 161, dummy=1) dan agak nggak akurat
+# y adalah: -1
+#
+# case lama: xyz yang diinginkan: c(0.8, -1.0, 6.0)
 # uv(s) adalah: c(187.6305 154.5382) -&gt; kalau di imagespace, cuma c(188, 154, dummy=1) dan agak nggak akurat
 # y adalah: -1
+#
+#
+#
+
 # dy (y object/lantai dikurangi y camera) = 0 - 1 = -1
 # s = dy / (y hasil solve)
 yObject &lt;- 0 # lantai Lumen: y == 0
 yCamera &lt;- 1 # camera 1 meter di atas lantai
 dy &lt;- yObject - yCamera
-uv &lt;- c(188, 154, 1)
+uv &lt;- c(119, 161, 1)
 xyz &lt;- solve(qr(CMRt), uv)
-names(xyz) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)
+names(xyz) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;-z&#39;)
 pander(xyz)</code></pre>
-<p><em>0.1351</em>, <em>-0.1641</em>, <em>1</em> and <em>0</em></p>
+<p><em>-0.1978</em>, <em>-0.1978</em>, <em>1</em> and <em>0</em></p>
 <pre class="r"><code># s = dy / (y hasil solve)
 s &lt;- dy / xyz[&#39;y&#39;]
 pander(s)</code></pre>
-<p><em>6.095</em></p>
-<pre class="r"><code># kalikan hasil solve dengan s, maka didapatkan xyz sebenarnya
-# yaitu: c(0.8, -1.0, 6.0) +- galat
-xyz &lt;- xyz * s
+<p><em>5.054</em></p>
+<pre class="r"><code># kalikan hasil solve dengan s, maka didapatkan x, y, z sebenarnya KOORDINAT KAMERA
+# tinggal translate dengan posisi kamera
+# (y bisa dikoreksi sesuai yang sudah diketahui)
+# dan tentunya: +- galat
+xyz_s &lt;- xyz * s
+pander(xyz_s)</code></pre>
+<p><em>-1</em>, <em>-1</em>, <em>5.054</em> and <em>0</em></p>
+<pre class="r"><code>names(xyz) &lt;- c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)
+xyz[&#39;x&#39;] &lt;- xyz_s[1] + tc[&#39;x&#39;]
+xyz[&#39;y&#39;] &lt;- xyz_s[2] + tc[&#39;y&#39;]
+xyz[&#39;z&#39;] &lt;- -xyz_s[3] + tc[&#39;z&#39;]
 pander(xyz)</code></pre>
-<p><em>0.8235</em>, <em>-1</em>, <em>6.095</em> and <em>0</em></p>
+<p><em>-1</em>, <em>0</em>, <em>-6.054</em> and <em>0</em></p>
 <p>Terus kita ingin mengetahui tinggi dari objek tersebut, bila diketahui x,y,z,u,v dari kaki, lalu v dari ujung kepala.</p>
 <pre class="r"><code>uv.head = c(188, 140, 1) # tingginya 14 pixel di camera
 xyz.head &lt;- solve(qr(CMRt), uv.head)
@@ -1872,32 +1892,32 @@ pander(xyz.head)</code></pre>
 # cuma belum dicoba kalau kameranya berotasi...
 xyz.head &lt;- xyz.head * s
 pander(xyz.head)</code></pre>
-<p><em>0.8235</em>, <em>-0.5882</em>, <em>6.095</em> and <em>0</em></p>
+<p><em>0.6829</em>, <em>-0.4878</em>, <em>5.054</em> and <em>0</em></p>
 <pre class="r"><code>pander(c(xyz.head[&#39;x&#39;] == xyz[&#39;x&#39;], xyz.head[&#39;z&#39;] == xyz[&#39;z&#39;]))</code></pre>
-<p>TRUE TRUE</p>
+<p>FALSE FALSE</p>
 <pre class="r"><code># tinggi orang adalah xyz.head[y] - xyz.foot[y]
 person.height &lt;- xyz.head[&#39;y&#39;] - xyz[&#39;y&#39;]
 pander(person.height)</code></pre>
-<p><em>0.4118</em></p>
+<p><em>-0.4878</em></p>
 <p>dan dengan yang cara yang sama, harusnya ini juga bisa digunakan untuk mengetahui lebar (kiri..kanan) dari objek / batas koordinat menurut sumbu x.</p>
 </div>
 <div id="implementasi-di-c" class="section level2">
-<h2>Implementasi di C++</h2>
+<h2><span class="header-section-number">0.5</span> Implementasi di C++</h2>
 <p>Selain fungsi dasar <a href="http://docs.opencv.org/modules/core/doc/basic_structures.html#matrix-expressions">matrix multiplication di OpenCV</a>, yang dibutuhkan adalah:</p>
 <ol style="list-style-type: decimal">
 <li><code>qr</code>: QR Decomposition of Matrix.</li>
 <li><code>solve</code>: Solve a System of Equations</li>
 </ol>
-<p>Ternyata sudah ada, yaitu <a href="http://docs.opencv.org/modules/core/doc/operations_on_arrays.html?highlight=solve#bool%20solve(InputArray%20src1,%20InputArray%20src2,%20OutputArray%20dst,%20int%20flags)">bool solve(InputArray src1, InputArray src2, OutputArray dst, int flags=DECOMP_LU)Â¶</a></p>
+<p>Ternyata sudah ada, yaitu <a href="http://docs.opencv.org/modules/core/doc/operations_on_arrays.html?highlight=solve#bool%20solve(InputArray%20src1,%20InputArray%20src2,%20OutputArray%20dst,%20int%20flags)">bool solve(InputArray src1, InputArray src2, OutputArray dst, int flags=DECOMP_LU)¶</a></p>
 <p>jadi kalo di R:</p>
 <pre class="r"><code>xyz &lt;- solve(qr(CMRt), uv)</code></pre>
 <p>di C++ jadi:</p>
 <pre><code>bool success = solve(CMRt, uv, xyz, DECOMP_QR);</code></pre>
 </div>
 <div id="pembuktian-model-dari-realita-samsung-galaxy-s4" class="section level2">
-<h2>Pembuktian Model dari Realita Samsung Galaxy S4</h2>
+<h2><span class="header-section-number">0.6</span> Pembuktian Model dari Realita Samsung Galaxy S4</h2>
 <div id="di-mic-lantai-4" class="section level3">
-<h3>Di MIC lantai 4</h3>
+<h3><span class="header-section-number">0.6.1</span> Di MIC lantai 4</h3>
 <ul>
 <li>approximate location : -6.890627,107.610220</li>
 <li>ubin : 0.4m x 0.4m</li>
@@ -1908,7 +1928,7 @@ pander(person.height)</code></pre>
 </ul>
 </div>
 <div id="di-kantor-bippo" class="section level3">
-<h3>Di kantor Bippo</h3>
+<h3><span class="header-section-number">0.6.2</span> Di kantor Bippo</h3>
 <ul>
 <li>ukuran ruangan: dz = (11.66667 + 6.9) * 0.3 = 5.57 m, dengan range: -2…+3.57 dx = 12 * 0.3 = 3.6 m, dengan range: -1.4 .. +2.2</li>
 <li>Jarak kamera ke tembok (z) = 11.6667 ubin = 11.6667 * 0.3 = 3.5 m</li>
@@ -1931,12 +1951,12 @@ pander(person.height)</code></pre>
 </div>
 </div>
 <div id="rotasi-3d" class="section level2">
-<h2>Rotasi 3D</h2>
+<h2><span class="header-section-number">0.7</span> Rotasi 3D</h2>
 <p>Recall pedoman rotasi sebagai berikut:</p>
 <ul>
 <li>Pitch (<span class="math">\(R_{cx}\)</span>): Looking up and down (0=Straight Ahead, +Up, -Down).</li>
-<li>Roll (<span class="math">\(R_{cy}\)</span>): Rotation about axis of screen, 0=Straight, +Clockwise, -CCW.</li>
-<li>Yaw (<span class="math">\(R_{cz}\)</span>): Rotating around (running in circles), 0=North, +West, -East. Kalo di Unreal: 0=East, +North, -South.</li>
+<li>Yaw (<span class="math">\(R_{cy}\)</span>): Rotating around (running in circles), 0=North, +West, -East. Kalo di Unreal: 0=East, +North, -South.</li>
+<li>Roll (<span class="math">\(R_{cz}\)</span>): Rotation about axis of screen, 0=Straight, +CCW, -Clockwise.</li>
 </ul>
 <p>Dari <a href="https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations">Rotation matrix: In three dimensions</a>:</p>
 <p><span class="math">\[R_cx(\alpha) = \begin{bmatrix}
@@ -1956,7 +1976,7 @@ R_cz(\gamma) = \begin{bmatrix}
 \end{bmatrix}
 \]</span></p>
 <p>Untuk menggabungkan <span class="math">\(R_cx\)</span>, <span class="math">\(R_cy\)</span>, dan <span class="math">\(R_cz\)</span> kayaknya urutannya begini:</p>
-<p><span class="math">\[R_c = R_{cz(Î³)} R_{cy(Î²)} R_{cx(Î±)}
+<p><span class="math">\[R_c = R_{cz(γ)} R_{cy(β)} R_{cx(α)}
 \]</span></p>
 <p>Perhatikan bahwa tugas <span class="math">\([R|t]\)</span> adalah mentranslasi lalu merotasi titik 3D agar berada dalam koordinat kamera. Setelah didapatkan <span class="math">\(R_c\)</span> yaitu rotasi kamera dan <span class="math">\(t_c\)</span> yaitu translasi kamera, kita bisa mencari <span class="math">\([R|t]\)</span>. Untuk mendapatkan <span class="math">\([R|\mathbf{t}]\)</span> dari posisi kamera <span class="math">\(t_c\)</span> dan rotasi kamera <span class="math">\(R_c\)</span>, <a href="http://ksimek.github.io/2012/08/22/extrinsic/">maka</a>: (<span class="math">\(^T\)</span>: transpose)</p>
 <p><span class="math">\[\left[

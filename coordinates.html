@@ -80,7 +80,7 @@ img {
 <li>Di Unreal, pas import FBX, gunakan import scale 0.01. Dari meter menjadi cm.</li>
 <li>Di Unity, pas import FBX, gunakan import scale 1. Dari meter tetap meter.</li>
 </ul>
-<p><a href="http://wiki.secondlife.com/wiki/Coordinate">Second Life / OpenSimulator</a> uses meters. A sim is 256×256 (x×y) meters. x is longitude (from west to east, <a href="http://xahsl.org/sl/build_pos.html">verified here</a>), y is latitude (from south to north). z is altitude where 0 is lowest possible point.</p>
+<p><a href="http://wiki.secondlife.com/wiki/Coordinate">Second Life / OpenSimulator</a> uses meters. A sim is 256Ã256 (xÃy) meters. x is longitude (from west to east, <a href="http://xahsl.org/sl/build_pos.html">verified here</a>), y is latitude (from south to north). z is altitude where 0 is lowest possible point.</p>
 <p><a href="http://osm-3d.org">OSM-3D.org</a></p>
 <p>See:</p>
 <ul>
@@ -94,9 +94,9 @@ img {
 <li><a href="http://www.web3d.org/">Web3D Consortium / X3D</a> used by NASA, DoD, Intel, IBM, National Institute of Health, Toshiba… curiously Google is missing? ISO/IEC standards:
 <ul>
 <li><a href="http://standards.sedris.org/18026_Ed2/ISO_IEC_18026_Ed2/ISO_IEC_18026_NOTES.html">ISO/IEC 18026:2009(E) Spatial Reference Model (SRM)</a></li>
-<li>ISO/IEC 18026:201x, Information technology — Spatial Reference Model (SRM) (to be published)</li>
-<li>ISO/IEC 19775-2, Information technology — Computer graphics, image processing and environmental data representation — Extensible 3D (X3D) — Part 2: Scene access interface (SAI)</li>
-<li>ISO/IEC 19776, Information technology — Computer graphics, image processing and environmental data representation — Extensible 3D (X3D) encodings</li>
+<li>ISO/IEC 18026:201x, Information technology â Spatial Reference Model (SRM) (to be published)</li>
+<li>ISO/IEC 19775-2, Information technology â Computer graphics, image processing and environmental data representation â Extensible 3D (X3D) â Part 2: Scene access interface (SAI)</li>
+<li>ISO/IEC 19776, Information technology â Computer graphics, image processing and environmental data representation â Extensible 3D (X3D) encodings</li>
 </ul></li>
 <li><a href="http://www.citygml.org/">CityGML</a></li>
 <li><a href="http://wiki.openstreetmap.org/wiki/OSM2World">OSM2World</a>, bisa tagging ada pintu, kursi, dll.</li>
@@ -135,8 +135,7 @@ img {
 <div id="units" class="section level3">
 <h3>Units</h3>
 <p>From <a href="http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html">X3D Concepts</a>:</p>
-<p>Table 4.2 lists the initial base units for ISO/IEC 19775.</p>
-<p>Table 4.2 — Standard units</p>
+<p>Table 4.2 Initial base units for ISO/IEC 19775</p>
 <table>
 <thead>
 <tr class="header">
@@ -163,7 +162,7 @@ img {
 </tr>
 </tbody>
 </table>
-<p>Table 4.3 — Derived units</p>
+<p>Table 4.3 Derived units</p>
 <table>
 <thead>
 <tr class="header">
@@ -200,11 +199,11 @@ img {
 <h3>Konversi ke Game Engine Coordinates</h3>
 <p>Dalam sistem Lumen yang dipakai sebagai standar adalah sistem X3D. Jadi pada saat image recognition/tracking, semua koordinatnya menggunakan aturan X3D.</p>
 <ul>
-<li><p>Dari koordinat Lumen ke Unreal, pada saat visualisasi Unreal, transformasi, lalu koordinatnya akan discale menjadi Unreal Units (×100).</p>
+<li><p>Dari koordinat Lumen ke Unreal, pada saat visualisasi Unreal, transformasi, lalu koordinatnya akan discale menjadi Unreal Units (Ã100).</p>
 <pre><code>xUnreal &lt;- -zIso * 100
 yUnreal &lt;- xIso * 100
 zUnreal &lt;- yIso * 100</code></pre>
-<p>Sebaliknya dari Unreal ke Lumen, koordinatenya discale menjadi Blender/X3D units (×0.01), lalu swap y dan z, lalu flip z.</p>
+<p>Sebaliknya dari Unreal ke Lumen, koordinatenya discale menjadi Blender/X3D units (Ã0.01), lalu swap y dan z, lalu flip z.</p>
 <pre><code>xIso &lt;- yUnreal * 0.01
 yIso &lt;- zUnreal * 0.01
 zIso &lt;- -xUnreal * 0.01</code></pre></li>
@@ -217,11 +216,11 @@ zUnity &lt;- -zIso</code></pre>
 yIso &lt;- yUnity
 zIso &lt;- -zUnity</code></pre></li>
 </ul>
-<p>Untuk rotasi 3D, menggunakan style X3D. See also: <a href="https://docs.unrealengine.com/latest/INT/API/Runtime/Core/Math/FRotator/index.html">rotation Unreal</a>. Unit sudut adalah degrees (counterclockwise+) agar lebih mudah karena sudut degrees juga dipakai oleh Unreal/Unity/Blender, meski standar ISO adalah radian. Pas kalkulasi internal baru diubah ke radian. Nama sudutnya buka alpha, beta, gamma tapi yang lebih deskriptif yaitu pitch (tengadah), roll (geleng clockwise), yaw (menoleh ke kiri):</p>
+<p>Untuk rotasi 3D, menggunakan style X3D. See also: <a href="https://docs.unrealengine.com/latest/INT/API/Runtime/Core/Math/FRotator/index.html">rotation Unreal</a>. Unit sudut adalah degrees (counterclockwise+) agar lebih mudah karena sudut degrees juga dipakai oleh Unreal/Unity/Blender, meski standar ISO adalah radian. Pas kalkulasi internal baru diubah ke radian. Nama sudutnya buka alpha, beta, gamma tapi yang lebih deskriptif yaitu pitch (tengadah), yaw (menoleh ke kiri), roll (geleng counterclockwise):</p>
 <ul>
-<li>Pitch (RX): Looking up and down (0=Straight Ahead, +Up, -Down).</li>
-<li>Roll (RY): Rotation about axis of screen, 0=Straight, +Clockwise, -CCW.</li>
-<li>Yaw (RZ): Rotating around (running in circles), 0=North, +West, -East. Kalo di Unreal: 0=East, +North, -South.</li>
+<li><strong>Pitch (RX)</strong>: Looking up and down (0=Straight Ahead, +Up, -Down).</li>
+<li><strong>Yaw (RY)</strong>: Rotating around (running in circles), 0=North, +West, -East. Kalo di Unreal: 0=East, +North, -South.</li>
+<li><strong>Roll (RZ)</strong>: Rotation about axis of screen, 0=Straight, +CCW, -Clockwise.</li>
 </ul>
 </div>
 <div id="tile-map-service-tms" class="section level3">
