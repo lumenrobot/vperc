@@ -73,8 +73,8 @@ class LumenRouteConfig {
             @Override
             public void configure() throws Exception {
                 final String humanDetectionUri = "rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&routingKey=lumen.arkan.human.detection";
-                from("rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&routingKey=avatar.NAO.data.image")
-                    //.to("log:IN.avatar.NAO.data.image?showHeaders=true&showAll=true&multiline=true")
+                from("rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&routingKey=avatar.nao1.data.image")
+                    //.to("log:IN.avatar.nao1.data.image?showHeaders=true&showAll=true&multiline=true")
                     .process(exchange -> {
                         long startTime = System.currentTimeMillis();
 
