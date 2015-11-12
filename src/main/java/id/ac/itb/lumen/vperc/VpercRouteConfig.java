@@ -24,9 +24,9 @@ import java.util.*;
  */
 @Configuration
 @Profile("vperc")
-class LumenRouteConfig {
+class VpercRouteConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(LumenRouteConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(VpercRouteConfig.class);
 
 //    @Inject
 //    protected AgentRepository agentRepo
