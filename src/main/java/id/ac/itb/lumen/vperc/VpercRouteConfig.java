@@ -72,8 +72,8 @@ class VpercRouteConfig {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                final String humanDetectionUri = "rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&routingKey=lumen.arkan.human.detection";
-                from("rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&routingKey=avatar.nao1.data.image")
+                final String humanDetectionUri = "rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&queue=lumen.arkan.human.detection&routingKey=lumen.arkan.human.detection";
+                from("rabbitmq://localhost/amq.topic?connectionFactory=#amqpConnFactory&exchangeType=topic&autoDelete=false&queue=avatar.nao1.camera.main&routingKey=avatar.nao1.camera.main")
                     //.to("log:IN.avatar.nao1.data.image?showHeaders=true&showAll=true&multiline=true")
                     .process(exchange -> {
                         long startTime = System.currentTimeMillis();
